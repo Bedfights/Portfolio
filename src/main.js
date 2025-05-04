@@ -3,7 +3,19 @@ import { createTrack } from './track.js';
 import { createCar } from './car.js';
 import * as CANNON from 'cannon-es';
 
-// Scene setup
+// 1. Create physics world first
+const world = new CANNON.World({
+  gravity: new CANNON.Vec3(0, -9.82, 0)
+});
+
+const groundBody = new CANNON.Body({
+  type: CANNON.Body.STATIC,
+  shape: new CANNON.Plane(),
+});
+groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+world.addBody(groundBody);
+
+// 2. Setup Three.js scene
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -11,42 +23,108 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
+
+camera.position.set(0, 5, 10);
+camera.lookAt(0, 0, 0);
+
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Track and car setup
-const { trackCurve } = createTrack(scene);
-const car = createCar(scene);
+import CannonDebugger from 'cannon-es-debugger';
+const cannonDebugger = CannonDebugger(scene, world);
 
-// Animate car along path
-let t = 0;
+// 3. Create track and car
+const { trackCurve } = createTrack(scene);
+const { vehicle, chassisBody, carMesh, wheelBodies, wheelMeshes } = createCar(world, scene); // Corrected return destructuring
+
+// 4. Animation loop
+const fixedTimeStep = 1.0 / 60.0; // seconds
+const maxSubSteps = 3;
+
+// Add user controls
+
+document.addEventListener('keydown', (event) => {
+  const maxSteerVal = Math.PI / 8;
+  const maxForce = 100;
+
+  switch (event.key) {
+    case 'w':
+    case 'ArrowUp':
+      vehicle.setWheelForce(maxForce, 0);
+      vehicle.setWheelForce(maxForce, 2);
+      break;
+    case 's':
+    case 'ArrowDown':
+      vehicle.setWheelForce(-maxForce / 2, 0);
+      vehicle.setWheelForce(-maxForce / 2, 2);
+      break;
+    case 'a':
+    case 'ArrowLeft':
+      vehicle.setSteeringValue(maxSteerVal, 0);
+      vehicle.setSteeringValue(maxSteerVal, 2);
+      break;
+    case 'd':
+    case 'ArrowRight':
+      vehicle.setSteeringValue(-maxSteerVal, 0);
+      vehicle.setSteeringValue(-maxSteerVal, 2);
+      break;
+  }
+});
+
+document.addEventListener('keyup', (event) => {
+  switch (event.key) {
+    case 'w':
+    case 'ArrowUp':
+      vehicle.setWheelForce(0, 0);
+      vehicle.setWheelForce(0, 2);
+      break;
+    case 's':
+    case 'ArrowDown':
+      vehicle.setWheelForce(0, 0);
+      vehicle.setWheelForce(0, 2);
+      break;
+    case 'a':
+    case 'ArrowLeft':
+      vehicle.setSteeringValue(0, 0);
+      vehicle.setSteeringValue(0, 2);
+      break;
+    case 'd':
+    case 'ArrowRight':
+      vehicle.setSteeringValue(0, 0);
+      vehicle.setSteeringValue(0, 2);
+      break;
+  }
+});
+
+
+
 
 function animate() {
   requestAnimationFrame(animate);
 
-  t = (t + 0.001) % 1;
+  // Step physics
+  world.step(fixedTimeStep, undefined, maxSubSteps);
 
-  const pos = trackCurve.getPointAt(t);
-  const tangent = trackCurve.getTangentAt(t);
-  const lookAt = new THREE.Vector3().copy(pos).add(tangent);
+  // Debugger
+  cannonDebugger.update();
 
-  car.position.copy(pos);
-  car.lookAt(lookAt);
-  car.position.y += 0.25; // Lift the car above the road
+  // Sync car mesh with physics body
+  carMesh.position.copy(chassisBody.position);
+  carMesh.quaternion.copy(chassisBody.quaternion);
 
-  // Camera follows the car
-  camera.position.lerpVectors(camera.position, new THREE.Vector3(
-    car.position.x + 5,
-    car.position.y + 5,
-    car.position.z + 10
-  ), 0.05);
-  camera.lookAt(car.position);
+  // Sync wheels
+  wheelBodies.forEach((wheelBody, i) => {
+    wheelMeshes[i].position.copy(wheelBody.position);
+    wheelMeshes[i].quaternion.copy(wheelBody.quaternion);
+  });
 
   renderer.render(scene, camera);
 }
 
 animate();
+
+
 
 
 

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as CANNON from 'cannon-es';
 
 export function createTrack(scene) {
   // Define curve path
@@ -18,10 +19,10 @@ export function createTrack(scene) {
     new THREE.Vector3(90, 0, 90),
     new THREE.Vector3(100, 0, 100),
     new THREE.Vector3(120, 0, 120),
-    new THREE.Vector3(130, 0, 140),
-    new THREE.Vector3(140, 0, 160),
-    new THREE.Vector3(150, 0, 180),
-    new THREE.Vector3(160, 0, 200),
+    new THREE.Vector3(130, 2, 140),
+    new THREE.Vector3(140, 2, 160),
+    new THREE.Vector3(150, 2, 180),
+    new THREE.Vector3(160, 1, 200),
     new THREE.Vector3(170, 0, 210),
     new THREE.Vector3(180, 0, 230),
     new THREE.Vector3(190, 0, 240),
@@ -55,7 +56,8 @@ export function createTrack(scene) {
     new THREE.Vector3(470, 0, 550),
     new THREE.Vector3(480, 0, 560),
     new THREE.Vector3(490, 0, 570),
-    new THREE.Vector3(500, 0, 580),
+    new THREE.Vector3(50, 0, -100),
+    new THREE.Vector3(-30, 0, 3)
   ];
   
   const trackCurve = new THREE.CatmullRomCurve3(points);
