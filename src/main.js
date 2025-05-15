@@ -25,7 +25,6 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 camera.position.set(0, 5, 10);
-camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -118,6 +117,14 @@ function animate() {
     wheelMeshes[i].position.copy(wheelBody.position);
     wheelMeshes[i].quaternion.copy(wheelBody.quaternion);
   });
+
+  // Camera look at car
+  const carPos = new THREE.Vector3(
+    chassisBody.position.x,
+    chassisBody.position.y,
+    chassisBody.position.z
+  )
+  camera.lookAt(carPos);
 
   renderer.render(scene, camera);
 }
