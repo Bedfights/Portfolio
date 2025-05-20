@@ -3,11 +3,11 @@ import * as THREE from 'three';
 
 export function createCar(world, scene) {
   // 1. Chassis
-  const chassisShape = new CANNON.Box(new CANNON.Vec3(2, 0.3, 0.7));
+  const chassisShape = new CANNON.Box(new CANNON.Vec3(2, 0.2, 0.7));
   const chassisBody = new CANNON.Body({ mass: 150 });
   chassisBody.addShape(chassisShape);
   chassisBody.position.set(0, 5, 0);
-  chassisBody.linearDamping = 0.5;
+  chassisBody.linearDamping = 0.35;
   world.addBody(chassisBody);
 
   // 2. Create vehicle
@@ -18,17 +18,17 @@ export function createCar(world, scene) {
   const wheelGeometry = new THREE.SphereGeometry(wheelRadius, 16, 16);
 
   const wheelOffsets = [
-    [-1, -0.3, -0.8],
-    [1, -0.3, -0.8],
-    [-1, -0.3, 0.8],
-    [1, -0.3, 0.8]
+    [-1, -0.23, -0.7],
+    [1, -0.23, -0.7],
+    [-1, -0.23, 0.7],
+    [1, -0.23, 0.7]
   ];
 
   const wheelBodies = [];
   const wheelMeshes = [];
 
   for (let i = 0; i < 4; i++) {
-    const wheelBody = new CANNON.Body({ mass: 10, material: wheelMaterial });
+    const wheelBody = new CANNON.Body({ mass: 8, material: wheelMaterial });
     wheelBody.addShape(new CANNON.Sphere(wheelRadius));
     vehicle.addWheel({
       body: wheelBody,
@@ -49,7 +49,7 @@ export function createCar(world, scene) {
 
   // 3. Visual chassis
   const carMesh = new THREE.Mesh(
-    new THREE.BoxGeometry(4, 0.6, 1.4),
+    new THREE.BoxGeometry(4, 0.4, 1.4),
     new THREE.MeshBasicMaterial({ color: 0xffff00 })
   );
   scene.add(carMesh);
