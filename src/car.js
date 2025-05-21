@@ -6,7 +6,7 @@ export function createCar(world, scene) {
   const chassisShape = new CANNON.Box(new CANNON.Vec3(2, 0.2, 0.7));
   const chassisBody = new CANNON.Body({ mass: 150 });
   chassisBody.addShape(chassisShape);
-  chassisBody.position.set(0, 5, 0);
+  chassisBody.position.set(0, 10, 0);
   chassisBody.linearDamping = 0.35;
   world.addBody(chassisBody);
 

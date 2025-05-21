@@ -3,6 +3,7 @@ import * as CANNON from 'cannon-es';
 import { createTrack } from './track.js';
 import { createCar } from './car.js';
 import { createCube } from './objects.js';
+import { createTrimeshFromGeometry } from './trimesh.js';
 
 
 // 1. Create physics world first
@@ -27,7 +28,7 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 camera.position.set(0, 5, 10);
-const cameraOffset = new THREE.Vector3(10, 5, 5);
+const cameraOffset = new THREE.Vector3(10, 3, 0);
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -36,19 +37,22 @@ document.body.appendChild(renderer.domElement);
 import CannonDebugger from 'cannon-es-debugger';
 const cannonDebugger = CannonDebugger(scene, world);
 
-// 3. Create track and car
-const { trackCurve } = createTrack(scene);
+// 3. Create car
 const { vehicle, chassisBody, carMesh, wheelBodies, wheelMeshes } = createCar(world, scene); // Corrected return destructuring
 
-// 4. Animation loop
+// track
+const { curve, geometry } = createTrack(scene, world); // now we have the geometry
+createTrimeshFromGeometry(geometry, world);     // convert it to physics
+
+
+// Animation loop
 const fixedTimeStep = 1.0 / 60.0; // seconds
 const maxSubSteps = 3;
 
 // Add user controls
-
 document.addEventListener('keydown', (event) => {
   const maxSteerVal = Math.PI / 8;
-  const maxForce = 100;
+  const maxForce = 200;
 
   switch (event.key) {
     case 'w':
@@ -101,12 +105,12 @@ document.addEventListener('keyup', (event) => {
 
 // Add light
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(15, 10, 15);
+directionalLight.position.set(150, 100, 150);
 scene.add(directionalLight);
 
 //cubes
 const cube1 = createCube(world, scene, {
-  size: 3,
+  size: 1,
   mass: 1,
   position: { x: -20, y: 8, z: 0 },
 });

@@ -1,6 +1,87 @@
 import * as THREE from 'three';
-import * as CANNON from 'cannon-es';
+import { createTrimeshFromGeometry } from './trimesh.js';
 
+export function createTrack(scene, world) {
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(-100, 0, 0),
+    new THREE.Vector3(-110, 4, -40),
+    new THREE.Vector3(-55, 4, -35),
+    new THREE.Vector3(-45, 8, -45),
+    new THREE.Vector3(-80, 0, -80),
+    new THREE.Vector3(-110, 0, -75),
+    new THREE.Vector3(-80, 0, -120),
+    new THREE.Vector3(0, 0, -100),
+    new THREE.Vector3(-5, 0, -85),
+    new THREE.Vector3(5, 0, -82),
+    new THREE.Vector3(35, 0, -110),
+    new THREE.Vector3(60, 0, -105),
+    new THREE.Vector3(55, 0, -75),
+    new THREE.Vector3(90, 0, -30),
+    new THREE.Vector3(90, 0, 0)
+  ], false, 'catmullrom', 0.5);
+
+  curve.closed = true;
+  const roadWidth = 10;
+  const segments = 600;
+  const geometry = new THREE.BufferGeometry();
+  const positions = [];
+  const indices = [];
+
+  for (let i = 0; i < segments; i++) {
+    const t1 = i / segments;
+    const t2 = (i + 1) / segments;
+
+    const point1 = curve.getPointAt(t1);
+    const point2 = curve.getPointAt(t2);
+
+    const tangent = curve.getTangentAt(t1);
+    const up = new THREE.Vector3(0, 1, 0);
+    const side = new THREE.Vector3().crossVectors(up, tangent).normalize().multiplyScalar(roadWidth / 2);
+
+    const left1 = new THREE.Vector3().copy(point1).add(side);
+    const right1 = new THREE.Vector3().copy(point1).sub(side);
+    const left2 = new THREE.Vector3().copy(point2).add(side);
+    const right2 = new THREE.Vector3().copy(point2).sub(side);
+
+    const baseIndex = positions.length / 3;
+
+    // Push two triangles (quad)
+    positions.push(...left1.toArray(), ...right1.toArray(), ...left2.toArray());
+    positions.push(...right1.toArray(), ...right2.toArray(), ...left2.toArray());
+
+    indices.push(
+      baseIndex, baseIndex + 1, baseIndex + 2,
+      baseIndex + 3, baseIndex + 4, baseIndex + 5
+    );
+  }
+
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x00ffaa,
+    emissive: 0x00ffaa,
+    emissiveIntensity: 1,
+    metalness: 0.2,
+    roughness: 0.1,
+    side: THREE.DoubleSide,
+  });
+
+  const roadMesh = new THREE.Mesh(geometry, material);
+  scene.add(roadMesh);
+
+  // Add physics
+  createTrimeshFromGeometry(geometry, world);
+
+  return { curve, geometry };
+}
+
+
+
+
+/*
 export function createTrack(scene) {
   // Define curve path
   const points = [
@@ -101,3 +182,5 @@ export function createTrack(scene) {
 
   return { trackCurve };
 }
+
+*/
