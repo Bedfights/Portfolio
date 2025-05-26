@@ -295,55 +295,60 @@ async function init() {
 // Animation loop \\
 // ************** \\
 
-const fixedTimeStep = 1.0 / 60.0; // seconds
+const fixedTimeStep = 1.0 / 60; // seconds
 const maxSubSteps = 3;
 
 function animate(vehicle, chassisBody, carGroup, carMesh) {
   requestAnimationFrame(() => animate(vehicle, chassisBody, carGroup, carMesh));
 
-  world.step(fixedTimeStep, undefined, maxSubSteps);
-  //cannonDebugger.update();
+  if (!isPaused) {
+    console.log('Animating...');
+    world.step(fixedTimeStep, undefined, maxSubSteps);
+    //cannonDebugger.update();
 
-  carGroup.position.copy(chassisBody.position);
-  carGroup.quaternion.copy(chassisBody.quaternion);
+    carGroup.position.copy(chassisBody.position);
+    carGroup.quaternion.copy(chassisBody.quaternion);
 
-  for (let i = 0; i < vehicle.wheelInfos.length; i++) {
-    vehicle.updateWheelTransform(i);
-    const t = vehicle.wheelInfos[i].worldTransform;
+    for (let i = 0; i < vehicle.wheelInfos.length; i++) {
+      vehicle.updateWheelTransform(i);
+      const t = vehicle.wheelInfos[i].worldTransform;
+    }
+
+    // Camera look at car
+    const carPos = new THREE.Vector3(
+      chassisBody.position.x,
+      chassisBody.position.y,
+      chassisBody.position.z
+    )
+    camera.lookAt(carPos);
+
+    // Camera follow car
+    const rotatedOffset = cameraOffset.clone().applyQuaternion(chassisBody.quaternion);
+    const cameraPos = carPos.clone().add(rotatedOffset);
+    camera.position.lerp(cameraPos, 0.1);
+
+  /*
+    cubes.forEach(({ body, mesh }) => {
+      mesh.position.copy(body.position);
+      mesh.quaternion.copy(body.quaternion);
+    });
+  */
+
+    spheres.forEach(({ body, mesh }) => {
+      mesh.position.copy(body.position);
+      mesh.quaternion.copy(body.quaternion);
+    });
+
+    polyhedrons.forEach(({ body, mesh }) => {
+      mesh.position.copy(body.position);
+      mesh.quaternion.copy(body.quaternion);
+    });
+
+    cubeCamera.position.copy(reflectiveSphere.position);
+    cubeCamera.update(renderer, scene);
+  } else if (isPaused) {
+    console.log('Paused');
   }
-
-  // Camera look at car
-  const carPos = new THREE.Vector3(
-    chassisBody.position.x,
-    chassisBody.position.y,
-    chassisBody.position.z
-  )
-  camera.lookAt(carPos);
-
-  // Camera follow car
-  const rotatedOffset = cameraOffset.clone().applyQuaternion(chassisBody.quaternion);
-  const cameraPos = carPos.clone().add(rotatedOffset);
-  camera.position.lerp(cameraPos, 0.1);
-
-/*
-  cubes.forEach(({ body, mesh }) => {
-    mesh.position.copy(body.position);
-    mesh.quaternion.copy(body.quaternion);
-  });
-*/
-
-  spheres.forEach(({ body, mesh }) => {
-    mesh.position.copy(body.position);
-    mesh.quaternion.copy(body.quaternion);
-  });
-
-  polyhedrons.forEach(({ body, mesh }) => {
-    mesh.position.copy(body.position);
-    mesh.quaternion.copy(body.quaternion);
-  });
-
-  cubeCamera.position.copy(reflectiveSphere.position);
-  cubeCamera.update(renderer, scene);
 
   renderer.render(scene, camera);
 }
