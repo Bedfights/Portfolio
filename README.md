@@ -8,3 +8,5 @@ This is a **3D interactive portfolio** built with **Three.js** and **Vite**, whe
    ```bash
    git clone https://github.com/Bedfights/Portfolio.git
    cd Portfolio
+
+Remember to give credits for car, info on teams
