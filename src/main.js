@@ -20,7 +20,7 @@ const world = new CANNON.World({
 const scene = new THREE.Scene();
 
 // Cannon debugger
-const cannonDebugger = CannonDebugger(scene, world);
+//const cannonDebugger = CannonDebugger(scene, world);
 
 // Perspective camera
 const camera = new THREE.PerspectiveCamera(
@@ -103,24 +103,45 @@ document.addEventListener('keyup', (event) => {
   }
 });
 
+// **** \\
+// Menu \\
+// **** \\
+let isPaused = false;
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape'){
+    isPaused = !isPaused;
+    const menu = document.getElementById('pauseMenu');
+    menu.style.display = isPaused ? 'flex' : 'none';
+  }
+})
+const resumeBtn = document.getElementById('resumeButton');
+const mapBtn = document.getElementById('mapButton');
+const xBtn = document.getElementById('xButton');
+const settingsBtn = document.getElementById('settingsButton');
+resumeBtn.addEventListener('click', () => {
+  isPaused = false;
+  const menu = document.getElementById('pauseMenu');
+  menu.style.display = 'none';
+});
+settingsBtn.addEventListener('click', () => {
+  //const settingsMenu
+})
+
+
+
+
 // ***** \\
 // Light \\
 // ***** \\
 
 const pointLight1 = new THREE.PointLight(0xffffff, 100, 200);
-pointLight1.position.set(0, 1.3, -100);
-pointLight1.castShadow = true;
-pointLight1.shadow.mapSize.width = 1024;
-pointLight1.shadow.mapSize.height = 1024;
-pointLight1.shadow.bias = 0.1;
-//scene.add(pointLight1);
+pointLight1.position.set(0, 13, 0);
+pointLight1.castShadow = false;
+scene.add(pointLight1);
 
 const pointLight2 = new THREE.PointLight(0xffffff, 100, 400);
 pointLight2.position.set(-250, 4, -160);
-pointLight2.castShadow = true;
-pointLight2.shadow.mapSize.width = 1024;
-pointLight2.shadow.mapSize.height = 1024;
-pointLight2.shadow.bias = 0.1;
+pointLight2.castShadow = false;
 scene.add(pointLight2);
 
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 1);
@@ -206,6 +227,7 @@ vertices: [
   roughness: 0.1,
 });
 */
+/*
 const polyh2 = createConvexPolyhedron(world, scene, {
   vertices: [
     new CANNON.Vec3(0, 1, 0),
@@ -222,14 +244,15 @@ const polyh2 = createConvexPolyhedron(world, scene, {
   mass: 1,
   position: { x: 6, y: 6, z: 0 }
 });
+*/
 
 
 
 
 
 //const cubes = [cube1];
-const spheres = [ sphere1, sphere2 ];
-const polyhedrons = [polyh2];
+const spheres = [ sphere1, sphere2];
+const polyhedrons = [];
 
 
 const reflectiveMaterial = new THREE.MeshStandardMaterial({

@@ -63,39 +63,46 @@ export function createCar(world, scene) {
 
         const leftPointLight = new THREE.PointLight(0x00ddff, 4, 20);
         leftPointLight.position.set(-0.8, -0.2, -2.5);
-        leftPointLight.castShadow = true;
-        carGroup.add(leftPointLight);
+        leftPointLight.castShadow = false;
+        
         const rightPointLight = new THREE.PointLight(0x00ddff, 4, 20);
         rightPointLight.position.set(0.8, -0.2, -2.5);
-        rightPointLight.castShadow = true;
-        carGroup.add(rightPointLight);
+        rightPointLight.castShadow = false;
+        
         const leftSpotLight = new THREE.SpotLight(0xccddff, 400, 200, Math.PI / 7, 0.5, 1);
         leftSpotLight.position.set(-0.8, -0.2, -2.1);
         leftSpotLight.target.position.set(-0.8, 0, -40);
-        leftSpotLight.castShadow = true;
-        carGroup.add(leftSpotLight);
-        carGroup.add(leftSpotLight.target);
+        leftSpotLight.castShadow = false;
+        
         const rightSpotLight = new THREE.SpotLight(0xccddff, 400, 200, Math.PI / 7, 0.5, 1);
         rightSpotLight.position.set(0.8, -0.2, -2.1);
         rightSpotLight.target.position.set(0.8, 0, -40);
-        rightSpotLight.castShadow = true;
-        carGroup.add(rightSpotLight);
-        carGroup.add(rightSpotLight.target);
+        rightSpotLight.castShadow = false;
+        
         const leftBreakLight = new THREE.PointLight(0xff0000, 1, 20);
         leftBreakLight.position.set(-0.7, -0.2, 2.1);
-        leftBreakLight.castShadow = true;
-        carGroup.add(leftBreakLight);
+        leftBreakLight.castShadow = false;
+        
         const rightBreakLight = new THREE.PointLight(0xff0000, 1, 20);
         rightBreakLight.position.set(0.7, -0.2, 2.1);
-        rightBreakLight.castShadow = true;
-        carGroup.add(rightBreakLight);
+        rightBreakLight.castShadow = false;
+        
         const lBWheelLight = new THREE.PointLight(0x00ddff, 0.03, 20);
         lBWheelLight.position.set(-1.1, -0.5, 1.6);
-        lBWheelLight.castShadow = true;
-        carGroup.add(lBWheelLight);
+        lBWheelLight.castShadow = false;
+        
         const rBWheelLight = new THREE.PointLight(0x00ddff, 0.03, 20);
         rBWheelLight.position.set(1.1, -0.5, 1.6);
-        rBWheelLight.castShadow = true;
+        rBWheelLight.castShadow = false;
+        carGroup.add(leftPointLight);
+        carGroup.add(rightPointLight);
+        carGroup.add(leftSpotLight);
+        carGroup.add(leftSpotLight.target);
+        carGroup.add(rightSpotLight);
+        carGroup.add(rightSpotLight.target);
+        carGroup.add(leftBreakLight);
+        carGroup.add(rightBreakLight);
+        carGroup.add(lBWheelLight);
         carGroup.add(rBWheelLight);
 
         // Resolve promise here, returning everything needed
