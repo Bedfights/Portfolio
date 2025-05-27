@@ -83,7 +83,7 @@ body {
 #settingsMenu {
   display: flex;
 }
-#qualityTitle {
+#qualityTitle, #volumeTitle {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
   color: white;
@@ -91,12 +91,12 @@ body {
   font-family: sans-serif;
   font-weight: 600;
 }
-#qualitySlider {
+#qualitySlider, #volumeSlider{
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  max-width: 400px;
-  min-width: 200px;
+  max-width: 180px;
+  min-width: 90px;
   height: 8px;
   background: rgb(67, 67, 72);
   outline: none;
@@ -104,7 +104,7 @@ body {
   border: 1px solid white;
   transition: opacity 0.2s;
 }
-#qualitySlider::-webkit-slider-thumb {
+#qualitySlider::-webkit-slider-thumb, #volumeSlider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   height: 26px;
@@ -115,7 +115,7 @@ body {
   transition: background 5s;
   cursor: pointer;
 }
-#qualitySlider::-moz-range-thumb {
+#qualitySlider::-moz-range-thumb, #volumeSlider::-moz-range-thumb {
   background: rgb(0, 0, 0);
   height: 26px;
   width: 26px;
@@ -127,5 +127,29 @@ body {
   display: inline;
   color: white;
   font-size: 0.8em;
-  margin: 1.8rem;
+  white-space: pre;
+  font-family: sans-serif;
+  font-weight: 600;
+}
+#underText2 {
+  margin: 12%;
+}
+#sliders {
+  width: 100%;
+  max-width: 400px;
+  min-width: 200px;
+  height: 100px;
+  margin: 0.5rem;
+  padding: 0;
+  border: 0;
+  align-items: center;
+  justify-content: center;
+}
+#qualitySelector, #volumeSelector {
+  display: inline-block;
+  margin: 0.5rem;
+  width: 45%;
+  max-width: 180px;
+  min-width: 90px;
+  height: 70px;
 }
