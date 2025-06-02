@@ -10,6 +10,8 @@ import { createTrimeshFromGeometry } from './trimesh.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import CannonDebugger from 'cannon-es-debugger';
+import { settings } from './config.js';
+import { createSatellite } from './satellite.js';
 
 // Create physics world
 const world = new CANNON.World({
@@ -48,6 +50,10 @@ document.body.appendChild(renderer.domElement);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+// Audiolistener
+const listener = new THREE.AudioListener();
+camera.add(listener);
+
 // Track
 const { curve, geometry } = createTrack(scene, world); // now we have the geometry
 createTrimeshFromGeometry(geometry, world);     // convert it to physics
@@ -55,7 +61,6 @@ createTrimeshFromGeometry(geometry, world);     // convert it to physics
 // ************* \\
 // User controls \\
 // ************* \\
-
 document.addEventListener('keydown', (event) => {
   const maxSteerVal = Math.PI / 6;
   const maxForce = 700;
@@ -106,29 +111,61 @@ document.addEventListener('keyup', (event) => {
 // **** \\
 // Menu \\
 // **** \\
+
+let carLights = [];
 let isPaused = false;
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape'){
-    isPaused = !isPaused;
-    const menu = document.getElementById('pauseMenu');
-    menu.style.display = isPaused ? 'flex' : 'none';
-  }
-})
+const startBtn = document.getElementById('startButton');
 const resumeBtn = document.getElementById('resumeButton');
 const mapBtn = document.getElementById('mapButton');
 const xBtn = document.getElementById('xButton');
 const settingsBtn = document.getElementById('settingsButton');
-resumeBtn.addEventListener('click', () => {
+const backBtn = document.getElementById('backButton');
+const startScreen = document.getElementById('startScreen');
+const menu = document.getElementById('pauseMenu');
+const settingsMenu = document.getElementById('settingsMenu');
+
+isPaused = true;
+startBtn.addEventListener('click', () => {
+  startScreen.style.display = 'none';
   isPaused = false;
-  const menu = document.getElementById('pauseMenu');
-  menu.style.display = 'none';
-});
-settingsBtn.addEventListener('click', () => {
-  //const settingsMenu
+  initSatellite();
 })
 
 
+resumeBtn.addEventListener('click', () => {
+  isPaused = false;
+  menu.style.display = 'none';
+});
+settingsBtn.addEventListener('click', () => {;
+  settingsMenu.style.display = 'flex';
+  menu.style.display = 'none';
+});
+backBtn.addEventListener('click', () => {
+  settingsMenu.style.display = 'none';
+  menu.style.display = 'flex';
+});
 
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape'){
+    isPaused = !isPaused;
+    menu.style.display = isPaused ? 'flex' : 'none';
+    settingsMenu.style.display = 'none';
+  }
+});
+
+const qualitySlider = document.getElementById('qualitySlider');
+qualitySlider.addEventListener('input', (event) => {
+  settings.quality = parseInt(event.target.value);
+  const enableShadows = settings.quality === 2;
+  carLights.forEach(light => {
+    light.castShadow = enableShadows;
+  });
+});
+
+// ***** \\
+// Sound \\
+// ***** \\
 
 // ***** \\
 // Light \\
@@ -269,21 +306,47 @@ const reflectiveSphere = new THREE.Mesh(
 reflectiveSphere.position.set(3, 3, -8);
 scene.add(reflectiveSphere);
 
+// ******************** \\
+// Initialize Satellite \\
+// ******************** \\
 
 
-// ************** \\
-// Initialize car \\
-// ************** \\
 
+// ************************** \\
+// Initialize car & satellite \\
+// ************************** \\
+let satelliteMesh;
 let vehicle, chassisBody, carGroup, carMesh;
 
 init();
-async function init() {
-  // physics and scene setup...
-
+async function initSatellite() {
   try {
-    ({ vehicle, chassisBody, carGroup, carMesh} = await createCar(world, scene));
+    satelliteMesh = await createSatellite(camera, listener);
+    scene.add(satelliteMesh);
+  } catch (error) {
+    console.error("Failed to load satellite", error);
+  }
+}
 
+async function init() {
+  try {
+    const car = await createCar(world, scene);
+    
+    vehicle = car.vehicle;
+    chassisBody = car.chassisBody;
+    carGroup = car.carGroup;
+    carMesh = car.carMesh;
+
+    carLights = [
+      car.leftPointLight,
+      car.rightPointLight,
+      car.leftSpotLight,
+      car.rightSpotLight,
+      car.leftBreakLight,
+      car.rightBreakLight,
+      car.lBWheelLight,
+      car.rBWheelLight
+    ];
     // Now start animation loop with car fully loaded:
     animate(vehicle, chassisBody, carGroup, carMesh);
   } catch (error) {
@@ -349,6 +412,8 @@ function animate(vehicle, chassisBody, carGroup, carMesh) {
   } else if (isPaused) {
     console.log('Paused');
   }
+
+  listener.position.copy(camera.position);
 
   renderer.render(scene, camera);
 }

@@ -79,8 +79,9 @@ export function createSphere2(world, scene, {
     roadTexture.repeat.set(1, 1);
     const material = new THREE.MeshStandardMaterial({
         map: roadTexture, 
-        metalness: 0.98,
-        roughness: 0.1,
+        metalness: 0.1,
+        roughness: 0.9,
+        color: 0xaaaaaa,
      });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;
