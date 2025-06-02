@@ -6,7 +6,6 @@ import { createCube } from './objects.js';
 import { createSphere } from './objects.js';
 import { createSphere2 } from './objects.js';
 import { createConvexPolyhedron } from './objects.js';
-import { createTrimeshFromGeometry } from './trimesh.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import CannonDebugger from 'cannon-es-debugger';
@@ -22,7 +21,7 @@ const world = new CANNON.World({
 const scene = new THREE.Scene();
 
 // Cannon debugger
-//const cannonDebugger = CannonDebugger(scene, world);
+const cannonDebugger = CannonDebugger(scene, world);
 
 // Perspective camera
 const camera = new THREE.PerspectiveCamera(
@@ -32,7 +31,7 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 camera.position.set(0, 5, 10);
-const cameraOffset = new THREE.Vector3(0, 4, 10);
+const cameraOffset = new THREE.Vector3(0, 2, 10);
 
 // Cube camera
 const cubeRendererTarget = new THREE.WebGLCubeRenderTarget(128, {
@@ -56,7 +55,6 @@ camera.add(listener);
 
 // Track
 const { curve, geometry } = createTrack(scene, world); // now we have the geometry
-createTrimeshFromGeometry(geometry, world);     // convert it to physics
 
 // ************* \\
 // User controls \\
@@ -117,12 +115,13 @@ let isPaused = false;
 const startBtn = document.getElementById('startButton');
 const resumeBtn = document.getElementById('resumeButton');
 const mapBtn = document.getElementById('mapButton');
-const xBtn = document.getElementById('xButton');
+const creditsBtn = document.getElementById('creditsButton');
 const settingsBtn = document.getElementById('settingsButton');
 const backBtn = document.getElementById('backButton');
 const startScreen = document.getElementById('startScreen');
 const menu = document.getElementById('pauseMenu');
 const settingsMenu = document.getElementById('settingsMenu');
+const creditsMenu = document.getElementById('creditsMenu');
 
 isPaused = true;
 startBtn.addEventListener('click', () => {
@@ -130,17 +129,20 @@ startBtn.addEventListener('click', () => {
   isPaused = false;
   initSatellite();
 })
-
-
 resumeBtn.addEventListener('click', () => {
   isPaused = false;
   menu.style.display = 'none';
 });
-settingsBtn.addEventListener('click', () => {;
+creditsBtn.addEventListener('click', () => {
+  creditsMenu.style.display = 'flex';
+  menu.style.display = 'none';
+})
+settingsBtn.addEventListener('click', () => {
   settingsMenu.style.display = 'flex';
   menu.style.display = 'none';
 });
 backBtn.addEventListener('click', () => {
+  creditsMenu.style.display = 'none';
   settingsMenu.style.display = 'none';
   menu.style.display = 'flex';
 });
@@ -367,7 +369,7 @@ function animate(vehicle, chassisBody, carGroup, carMesh) {
   if (!isPaused) {
     console.log('Animating...');
     world.step(fixedTimeStep, undefined, maxSubSteps);
-    //cannonDebugger.update();
+    cannonDebugger.update();
 
     carGroup.position.copy(chassisBody.position);
     carGroup.quaternion.copy(chassisBody.quaternion);

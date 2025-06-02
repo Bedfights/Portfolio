@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createTrimeshFromGeometry } from './trimesh.js';
+import * as CANNON from 'cannon-es';
 
 export function createTrack(scene, world) {
   const curve = new THREE.CatmullRomCurve3([
@@ -24,64 +24,62 @@ export function createTrack(scene, world) {
     new THREE.Vector3(0, 1, 180)
   ], false, 'catmullrom', 0.5);
 
-  curve.tension = 0.5;
-
   curve.closed = true;
   const roadWidth = 32;
+  const trackHeight = 1;
   const segments = 600;
-  const geometry = new THREE.BufferGeometry();
-  const positions = [];
-  const indices = [];
-  
 
-const frames = curve.computeFrenetFrames(segments, true);
+  const frames = curve.computeFrenetFrames(segments, true);
 
-for (let i = 0; i < segments; i++) {
-  const point1 = curve.getPointAt(i / segments);
-  const point2 = curve.getPointAt((i + 1) / segments);
+  for (let i = 0; i < segments; i++) {
+    const t = i / segments;
 
-  const binormal1 = frames.binormals[i];
-  const binormal2 = frames.binormals[(i + 1) % segments]; // wrap around
+    const position = curve.getPointAt(t);
+    const tangent = frames.tangents[i];
+    const normal = frames.normals[i];
+    const binormal = frames.binormals[i];
 
-  const side1 = binormal1.clone().multiplyScalar(roadWidth / 2);
-  const side2 = binormal2.clone().multiplyScalar(roadWidth / 2);
+    const nextPosition = curve.getPointAt((i + 1) / segments);
+    const segmentLength = position.distanceTo(nextPosition);
 
-  const left1 = point1.clone().add(side1);
-  const right1 = point1.clone().sub(side1);
-  const left2 = point2.clone().add(side2);
-  const right2 = point2.clone().sub(side2);
+    // Create geometry
+    const geometry = new THREE.BoxGeometry(segmentLength, trackHeight, roadWidth);
+    const material = new THREE.MeshStandardMaterial({ color: 0x888888 });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
 
-  const baseIndex = positions.length / 3;
+    // Set rotation using the Frenet frame
+    const basisMatrix = new THREE.Matrix4();
+    basisMatrix.makeBasis(tangent.clone().normalize(), normal.clone().normalize(), binormal.clone().normalize());
 
-  positions.push(...left1.toArray(), ...right1.toArray(), ...left2.toArray());
-  positions.push(...right1.toArray(), ...right2.toArray(), ...left2.toArray());
+    const transformMatrix = new THREE.Matrix4();
+    transformMatrix.setPosition(position);
+    transformMatrix.multiplyMatrices(transformMatrix, basisMatrix);
 
-  indices.push(
-    baseIndex, baseIndex + 1, baseIndex + 2,
-    baseIndex + 3, baseIndex + 4, baseIndex + 5
-  );
+    mesh.setRotationFromMatrix(transformMatrix);
+    mesh.position.copy(position);
+    mesh.matrixAutoUpdate = false;
+    mesh.updateMatrix();
+
+    scene.add(mesh);
+
+    // Physics body
+    const shape = new CANNON.Box(new CANNON.Vec3(segmentLength / 2, trackHeight / 2, roadWidth / 2));
+    const body = new CANNON.Body({ mass: 0 });
+
+    const quaternion = new CANNON.Quaternion();
+    const threeQuat = new THREE.Quaternion();
+    mesh.getWorldQuaternion(threeQuat);
+    quaternion.set(threeQuat.x, threeQuat.y, threeQuat.z, threeQuat.w);
+
+    body.addShape(shape);
+    body.position.set(position.x, position.y, position.z);
+    body.quaternion.copy(quaternion);
+
+    world.addBody(body);
+  }
+
+  return { curve };
 }
 
-
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x888888,
-    emissive: 0x00ffaa,
-    emissiveIntensity: 0,
-    metalness: 0.98,
-    roughness: 0.4,
-    side: THREE.DoubleSide,
-  });
-
-  const roadMesh = new THREE.Mesh(geometry, material);
-  roadMesh.receiveShadow = true;
-  scene.add(roadMesh);
-
-  // Add physics
-  createTrimeshFromGeometry(geometry, world);
-
-  return { curve, geometry };
-}
