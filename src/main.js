@@ -34,7 +34,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(0, 5, 10);
+camera.position.set(0, 20, 10);
 const cameraOffset = new THREE.Vector3(0, 3, 10);
 
 // Cube camera
@@ -52,10 +52,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-// Audiolistener
-const listener = new THREE.AudioListener();
-camera.add(listener);
 
 // Track
 const { curve, geometry } = createTrack(scene, world); // now we have the geometry
@@ -606,7 +602,7 @@ let vehicle, chassisBody, carGroup, carMesh;
 init();
 async function initSatellite() {
   try {
-    satelliteMesh = await createSatellite(camera, listener);
+    satelliteMesh = await createSatellite(camera);
     scene.add(satelliteMesh);
   } catch (error) {
     console.error("Failed to load satellite", error);
@@ -703,7 +699,6 @@ function animate(vehicle, chassisBody, carGroup, carMesh) {
   }
 
   hoverTextMesh.lookAt(camera.position);
-  listener.position.copy(camera.position);
 
   renderer.render(scene, camera);
 }
