@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as CANNON from 'cannon-es';
 
 /**
  * Adds a simple streetlight to the scene at the specified position.
@@ -6,9 +7,9 @@ import * as THREE from 'three';
  * @param {{ x: number, y: number, z: number }} position - The base position of the streetlight.
  * @param {number} rotationY - Rotation in radians around the Y-axis.
  */
-export function createStreetLight(scene, position = { x: 0, y: 0, z: 0 }, rotationY = 0) {
+export function createStreetLight(scene, world, position = { x: 0, y: 0, z: 0 }, rotationY = 0) {
   const streetlight = new THREE.Group();
-  const poleHeight = 6;
+  const poleHeight = 7;
 
   // Pole
   const poleGeometry = new THREE.BoxGeometry(0.2, poleHeight, 0.2);
@@ -25,7 +26,7 @@ export function createStreetLight(scene, position = { x: 0, y: 0, z: 0 }, rotati
   arm.position.set(0.5, poleHeight, 0);
 
   // Light source
-  const light = new THREE.PointLight(0xffffcc, 15, 20);
+  const light = new THREE.PointLight(0xffffcc, 50, 20);
   light.position.set(1, poleHeight - 0.15, 0);
   light.castShadow = false;
 
@@ -43,6 +44,27 @@ export function createStreetLight(scene, position = { x: 0, y: 0, z: 0 }, rotati
   streetlight.rotation.y = rotationY;
 
   scene.add(streetlight);
-  return streetlight;
+
+  // CANNON.js static physics body (just the pole for simplicity)
+  const halfExtents = new CANNON.Vec3(0.1, poleHeight / 2, 0.1);
+  const shape = new CANNON.Box(halfExtents);
+  const body = new CANNON.Body({ mass: 0 }); // static
+  body.addShape(shape);
+
+  // Apply rotation to physics too
+  const quat = new CANNON.Quaternion();
+  quat.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), rotationY);
+  body.quaternion.copy(quat);
+
+  // Position in CANNON world (match center of pole)
+  body.position.set(
+    position.x,
+    position.y + poleHeight / 2,
+    position.z
+  );
+
+  world.addBody(body);
+
+  return { mesh: streetlight, body };
 }
 

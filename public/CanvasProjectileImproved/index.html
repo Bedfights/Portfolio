@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectileImproved</title>
+    <link href="style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div id="score">
+        <span>Score: </span>
+        <span id="scoreValue">0</span>
+    </div>
+
+
+    <div class="restart" id="restartThing">
+        <div class="white-bg">
+            <h1 id="end-score">0</h1>
+            <p class="small-end-text">Points</p>
+            <div>
+                <button id="start-game">Start Game</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="pause" id="pauseThing">
+        <div class="pauseBackground">
+            <h1 id="pausedTitle">Paused</h1>
+            <div>
+                <button class="simpleBtn" id="resumeGame">Resume</button>
+                <button class="simpleBtn" id="settings">Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings" id="settingsThing">
+        <div class="settingsBackground">
+            <h1 id="settingsTitle">Settings</h1>
+            <div id="divSounds">
+                <h2 id="settingsAudio" class="settingsText">Audio</h2>
+                <hr>
+                <div id="bgVolumeControl" class="volumeControl">
+                    <label for="bgVolumeSlider">Background music</label>
+                    <input type="range" id="bgVolumeSlider" class="slider" min="0" max="1" step="0.01" value="1">
+                </div>
+            </div>
+            <h2 id="settingsSkin" class="settingsText">Skin</h2>
+            <button class="simpleBtn" id="backToPause">Back</button>
+        </div>
+    </div>
+
+    <canvas id="game-area"></canvas>
+
+    <div id="sounds">
+        <audio id="background-music" src="Sounds/background-music.mp3" loop></audio>
+        <audio id="shot-sound" src="Sounds/shot.mp3"></audio>
+        <audio id="damage-sound" src="Sounds/damage.mp3"></audio>
+        <audio id="kill-sound" src="Sounds/kill.mp3"></audio>
+        <audio id="death-sound" src="Sounds/death.mp3"></audio>
+    </div>
+
+    <script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" 
+        integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -10,8 +10,8 @@ export function createTrack(scene, world) {
     new THREE.Vector3(-70, 4, -90),
     new THREE.Vector3(-100, 5, -70),
     new THREE.Vector3(-160, 6, -140),
-    new THREE.Vector3(-150, 7, -220),
-    new THREE.Vector3(-200, 8, -230),
+    new THREE.Vector3(-150, 6, -220),
+    new THREE.Vector3(-200, 6, -230),
     new THREE.Vector3(-250, 6, -160),
     new THREE.Vector3(-200, 5, -40),
     new THREE.Vector3(-148, 4, -30),
@@ -49,7 +49,7 @@ export function createTrack(scene, world) {
   const material = new THREE.MeshStandardMaterial({ 
     color: 0x666666,
     metalness: 0.9,
-    roughness: 0.5,
+    roughness: 0.6,
 
   });
   const mesh = new THREE.Mesh(geometry, material);

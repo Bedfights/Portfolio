@@ -9,7 +9,7 @@ export function createCar(world, scene) {
     const chassisShape = new CANNON.Box(new CANNON.Vec3(1, 0.35, 2.2));
     const chassisBody = new CANNON.Body({ mass: 250 });
     chassisBody.addShape(chassisShape);
-    chassisBody.position.set(0, 10, 0);
+    chassisBody.position.set(-250, 16, -160);
     world.addBody(chassisBody);
 
     const vehicle = new CANNON.RaycastVehicle({

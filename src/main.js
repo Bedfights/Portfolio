@@ -8,6 +8,7 @@ import { createSphere2 } from './objects.js';
 import { createLetter} from './objects.js';
 import { createSmallLetter } from './objects.js';
 import { createReflectiveSphere } from './objects.js';
+import { createDisplay } from './objects.js';
 import { createStreetLight } from './streetlight.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
@@ -60,6 +61,32 @@ camera.add(listener);
 const { curve, geometry } = createTrack(scene, world); // now we have the geometry
 
 // Clickable objects
+let hoverTextMesh;
+let fontGlobal;
+
+const fontLoader = new FontLoader();
+fontLoader.load('/fonts/RobotoCondensed.facetype.json', (font) => {
+  fontGlobal = font;
+
+  const geometry = new TextGeometry('', {
+    font: font,
+    size: 0.3,
+    height: 0.05,
+    curveSegments: 12
+  });
+  geometry.center();
+
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x00ff00,
+    emissive: 0x00cc00,
+  });
+
+  hoverTextMesh = new THREE.Mesh(geometry, material);
+  hoverTextMesh.visible = false;
+  scene.add(hoverTextMesh);
+});
+
+
 function createButton({ text, url, position }) {
   const geometry = new THREE.BoxGeometry(3, 1, 0.2);
   const material = new THREE.MeshBasicMaterial({
@@ -69,6 +96,7 @@ function createButton({ text, url, position }) {
   button.position.set(position.x, position.y, position.z);
   button.rotation.y = THREE.MathUtils.degToRad(75);
   button.userData.url = url;
+  button.userData.hoverText = text;
 
   const textLoader = new FontLoader();
   textLoader.load('/fonts/RobotoCondensed.facetype.json', (font) => {
@@ -76,7 +104,7 @@ function createButton({ text, url, position }) {
       font: font,
       size: 0.4,
     });
-    textGeo.scale(1, 1, 0.002)
+    textGeo.scale(1, 1, 0.001)
     const textMat = new THREE.MeshStandardMaterial({ 
       color: 0xffffff,
       emissive: 0x444444
@@ -118,6 +146,42 @@ function onMouseClick(event) {
     }
   }
 }
+
+document.addEventListener('mousemove', onMouseMove, false);
+
+function onMouseMove(event) {
+  if (!hoverTextMesh || !fontGlobal) return;
+
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(clickableObjects);
+
+  if (intersects.length > 0) {
+    const object = intersects[0].object;
+
+    if (object.userData.hoverText) {
+      const newGeometry = new TextGeometry(`open ${object.userData.hoverText}`, {
+        font: fontGlobal,
+        size: 0.3,
+        curveSegments: 12
+      });
+      newGeometry.scale(1, 1, 0.01);
+      newGeometry.center();
+
+      hoverTextMesh.geometry.dispose(); // Clean up old
+      hoverTextMesh.geometry = newGeometry;
+
+      const objPos = object.position.clone();
+      hoverTextMesh.position.set(objPos.x, objPos.y + 1.5, objPos.z);
+      hoverTextMesh.visible = true;
+    }
+  } else {
+    hoverTextMesh.visible = false;
+  }
+}
+
 
 createButton({
   text: "GitHub",
@@ -356,7 +420,7 @@ pointLight2.position.set(-250, 3, -160);
 pointLight2.castShadow = false;
 //scene.add(pointLight2);
 
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 0.7);
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 0.4);
 scene.add(hemiLight);
 
 // ******* \\
@@ -466,7 +530,6 @@ loaderText.load('/fonts/RobotoCondensed.facetype.json', (font) => {
     });
     letters.push(letter);
   }
-  
 
   // Update letter meshes each frame based on physics
   function updateLetters() {
@@ -491,13 +554,48 @@ const spheres = [ sphere1, sphere2, reflectiveSphere ];
 
 //streetlights
 //Area 51
-createStreetLight(scene, { x: -13, y: 0, z: -13 }, -Math.PI / 4);
-createStreetLight(scene, { x: 13, y: 0, z: -13 }, -Math.PI / 1.5);
-createStreetLight(scene, { x: 13, y: 0, z: 13 }, Math.PI / 1.5);
-createStreetLight(scene, { x: -13, y: 0, z: 13 }, Math.PI / 4);
+createStreetLight(scene, world, { x: -13, y: 0, z: -13 }, -Math.PI / 4);
+createStreetLight(scene, world, { x: 13, y: 0, z: -13 }, -Math.PI / 1.5);
+createStreetLight(scene, world, { x: 13, y: 0, z: 13 }, Math.PI / 1.5);
+createStreetLight(scene, world, { x: -13, y: 0, z: 13 }, Math.PI / 4);
 //Area 52
-createStreetLight(scene, { x: -250, y: 6, z: -160 });
+createStreetLight(scene, world, { x: -170, y: 6, z: -245 }, -Math.PI / 4);
+createStreetLight(scene, world, { x: -144, y: 6, z: -233 }, -Math.PI / 1.5);
+createStreetLight(scene, world, { x: -139, y: 6, z: -207 }, Math.PI / 1.5);
+createStreetLight(scene, world, { x: -164, y: 6, z: -214 }, Math.PI / 4);
+//Area 53
+createStreetLight(scene, world, { x: -238, y: 5, z: -80 }, -Math.PI / 4);
+createStreetLight(scene, world, { x: -212, y: 5, z: -85 }, -Math.PI / 1.5);
+createStreetLight(scene, world, { x: -200, y: 5, z: -60 }, Math.PI / 1.5);
+createStreetLight(scene, world, { x: -223, y: 5, z: -50 }, Math.PI / 4);
+//Area 54
+createStreetLight(scene, world, { x: -50, y: 0, z: 180 }, -Math.PI / 4);
+createStreetLight(scene, world, { x: -30, y: 0, z: 183 }, -Math.PI / 1.5);
+createStreetLight(scene, world, { x: -30, y: 0, z: 208 }, Math.PI / 1.5);
+createStreetLight(scene, world, { x: -50, y: 0, z: 205 }, Math.PI / 4);
 
+createDisplay(scene, world, clickableObjects, {
+  imagePath: '/images/MazeGameImg.png',
+  position: { x: -160, y: 10, z: -250 },
+  opacity: 0.5,
+  url: '/MazeGameFolder/index.html'
+});
+
+createDisplay(scene, world, clickableObjects, {
+  imagePath: '/images/ProjectileGameImg.png',
+  position: { x: -150, y: 10, z: -247 },
+  rotationY: -Math.PI / 6,
+  opacity: 0.5,
+  url: '/CanvasProjectileImproved/index.html'
+});
+
+createDisplay(scene, world, clickableObjects, {
+  imagePath: '/images/PdfLogo.png',
+  position: { x: -134, y: 10, z: -220 },
+  rotationY: -Math.PI / 3,
+  opacity: 0.5,
+  url: '/CV.html'
+});
 
 // ************************** \\
 // Initialize car & satellite \\
@@ -604,6 +702,7 @@ function animate(vehicle, chassisBody, carGroup, carMesh) {
     console.log('Paused');
   }
 
+  hoverTextMesh.lookAt(camera.position);
   listener.position.copy(camera.position);
 
   renderer.render(scene, camera);

@@ -213,3 +213,38 @@ textGeo.scale(1.2, 1.2, 0.003);
 
   return { mesh, body };
 }
+
+export function createDisplay(scene, world, clickableObjects, options = {}) {
+  const {
+    imagePath,
+    position = { x: 0, y: 0, z: 0 },
+    rotationY = 0,
+    opacity = 1,
+    size = { width: 4, height: 4 },
+    url = null
+  } = options;
+
+  const loader = new THREE.TextureLoader();
+  loader.load(imagePath, (texture) => {
+    const screenGeometry = new THREE.PlaneGeometry(size.width, size.height);
+    const screenMaterial = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      opacity: opacity,
+    });
+
+    const screenMesh = new THREE.Mesh(screenGeometry, screenMaterial);
+    screenMesh.position.set(position.x, position.y, position.z);
+    screenMesh.rotation.y = rotationY;
+
+    if (url) {
+      screenMesh.userData.url = url;
+      clickableObjects.push(screenMesh);
+    }
+
+    screenMesh.castShadow = true;
+    screenMesh.receiveShadow = true;
+
+    scene.add(screenMesh);
+  });
+}

@@ -12,7 +12,7 @@ export async function createSatellite(camera, listener) {
         loader.load('/models/satellite.glb', async (gltf) => {
             const satelliteMesh = gltf.scene;
             satelliteMesh.scale.set(2, 2, 2);
-            satelliteMesh.position.set(-320, 10, 80);
+            satelliteMesh.position.set(-320, 0, 80);
             satelliteMesh.rotateX(Math.PI / 5);
             satelliteMesh.rotateY(Math.PI / 14);
             satelliteMesh.rotateZ(Math.PI / 3);
@@ -24,7 +24,7 @@ export async function createSatellite(camera, listener) {
                 audioLoader.load('/sounds/satellite.ogg', (buffer) => {
                     audio.setBuffer(buffer);
                     audio.setRefDistance(1);
-                    audio.setMaxDistance(200);
+                    audio.setMaxDistance(100);
                     audio.setRolloffFactor(1);
                     audio.setDistanceModel('linear');
                     audio.setLoop(true);

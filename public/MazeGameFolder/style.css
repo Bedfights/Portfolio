@@ -1,0 +1,98 @@
+body {
+    background-color: rgb(10,50,10);
+}
+#player {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color:rgb(0,0,0);
+}
+.wall {
+    position: absolute;
+    background-color: rgb(0,0,0);
+}
+#cheese {
+    position: absolute;
+    background-color:rgb(220,220,0);
+}
+h1-1 {
+    position:fixed;
+    color: rgb(0,180,0);
+    font-size:55px;
+    font-weight:900;
+    font-family:monospace;
+    top:5%;
+    left:50%;
+    transform: translate(-50%);
+}
+h1-2 {
+    position: absolute;
+    color:rgb(0,180,0);
+    font-size:55px;
+    font-weight:900;
+    font-family:monospace;
+    margin-left: 690px;
+    margin-top:42px;
+}
+awsd {
+    position: absolute;
+    color:rgb(4,20,4);
+    font-size:55px;
+    font-family:monospace;
+    font-weight:900;
+    margin-left: 860px;
+    margin-top: 760px;
+}
+.back {
+    position: absolute;
+    background-color: transparent;
+    color: rgb(4,20,4);
+    font-size:55px;
+    height:12vh;
+    width:17%;
+    margin-left:75%;
+    margin-top:10%;
+    font-weight:900;
+    font-family:monospace;
+
+
+    border-color:rgb(0,2,0);
+    border-width:2px;
+}
+.maze {
+    position: absolute;
+    background-color: transparent;
+    color: rgb(4,20,4);
+    font-size:55px;
+    height:12vh;
+    width:17%;
+    margin-left:75%;
+    margin-top:10%;
+    font-weight:900;
+    font-family:monospace;
+
+
+    border-color:rgb(0,2,0);
+    border-width:2px;
+}
+.shoot {
+    position:absolute;
+    background-color: transparent;
+    color:rgb(4,20,4);
+    font-size:450%;
+    height:12vh;
+    width:17%;
+    margin-left:75%;
+    margin-top:16%;
+    font-weight:900;
+    font-family:monospace;
+
+    border-color:rgb(0,2,0);
+    border-width:2px;
+}
+.player {
+    position:absolute;
+    width:20px;
+    height:20px;
+    background-color:rgb(200,0,0);
+}
