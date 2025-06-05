@@ -8,6 +8,7 @@ import { createSphere2 } from './objects.js';
 import { createLetter} from './objects.js';
 import { createSmallLetter } from './objects.js';
 import { createReflectiveSphere } from './objects.js';
+import { createStreetLight } from './streetlight.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import CannonDebugger from 'cannon-es-debugger';
@@ -78,7 +79,7 @@ function createButton({ text, url, position }) {
     textGeo.scale(1, 1, 0.002)
     const textMat = new THREE.MeshStandardMaterial({ 
       color: 0xffffff,
-      emissive: 0x00ff00
+      emissive: 0x444444
     });
     const textMesh = new THREE.Mesh(textGeo, textMat);
     textGeo.computeBoundingBox();
@@ -348,14 +349,14 @@ qualitySlider.addEventListener('input', (event) => {
 const pointLight1 = new THREE.PointLight(0xffffff, 100, 200);
 pointLight1.position.set(0, 13, 0);
 pointLight1.castShadow = false;
-scene.add(pointLight1);
+//scene.add(pointLight1);
 
-const pointLight2 = new THREE.PointLight(0xffffff, 100, 400);
-pointLight2.position.set(-250, 4, -160);
+const pointLight2 = new THREE.PointLight(0xffffff, 400, 200);
+pointLight2.position.set(-250, 3, -160);
 pointLight2.castShadow = false;
-scene.add(pointLight2);
+//scene.add(pointLight2);
 
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 1);
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 0.7);
 scene.add(hemiLight);
 
 // ******* \\
@@ -487,6 +488,15 @@ loaderText.load('/fonts/RobotoCondensed.facetype.json', (font) => {
 
 const cubes = [cube1];
 const spheres = [ sphere1, sphere2, reflectiveSphere ];
+
+//streetlights
+//Area 51
+createStreetLight(scene, { x: -13, y: 0, z: -13 }, -Math.PI / 4);
+createStreetLight(scene, { x: 13, y: 0, z: -13 }, -Math.PI / 1.5);
+createStreetLight(scene, { x: 13, y: 0, z: 13 }, Math.PI / 1.5);
+createStreetLight(scene, { x: -13, y: 0, z: 13 }, Math.PI / 4);
+//Area 52
+createStreetLight(scene, { x: -250, y: 6, z: -160 });
 
 
 // ************************** \\
