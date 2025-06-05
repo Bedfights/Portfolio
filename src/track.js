@@ -6,17 +6,17 @@ export function createTrack(scene, world) {
     new THREE.Vector3(0, 1, 0),
     new THREE.Vector3(10, 1, -180),
     new THREE.Vector3(-80, 2, -200),
-    new THREE.Vector3(-100, 2, -160),
-    new THREE.Vector3(-70, 3, -90),
-    new THREE.Vector3(-100, 4, -70),
-    new THREE.Vector3(-160, 5, -140),
-    new THREE.Vector3(-150, 4, -220),
-    new THREE.Vector3(-200, 4, -230),
-    new THREE.Vector3(-250, 3, -160),
-    new THREE.Vector3(-200, 2, -40),
-    new THREE.Vector3(-148, 1, -30),
-    new THREE.Vector3(-130, 1, 0),
-    new THREE.Vector3(-154, 1, 30),
+    new THREE.Vector3(-100, 3, -160),
+    new THREE.Vector3(-70, 4, -90),
+    new THREE.Vector3(-100, 5, -70),
+    new THREE.Vector3(-160, 6, -140),
+    new THREE.Vector3(-150, 7, -220),
+    new THREE.Vector3(-200, 8, -230),
+    new THREE.Vector3(-250, 6, -160),
+    new THREE.Vector3(-200, 5, -40),
+    new THREE.Vector3(-148, 4, -30),
+    new THREE.Vector3(-130, 3, 0),
+    new THREE.Vector3(-154, 2, 30),
     new THREE.Vector3(-230, 1, 75),
     new THREE.Vector3(-210, 1, 140),
     new THREE.Vector3(-120, 1, 130),
@@ -26,60 +26,66 @@ export function createTrack(scene, world) {
 
   curve.closed = true;
   const roadWidth = 32;
-  const trackHeight = 1;
+  const trackHeight = 0.5;
   const segments = 600;
 
   const frames = curve.computeFrenetFrames(segments, true);
 
   for (let i = 0; i < segments; i++) {
-    const t = i / segments;
+  const t = i / segments;
 
-    const position = curve.getPointAt(t);
-    const tangent = frames.tangents[i];
-    const normal = frames.normals[i];
-    const binormal = frames.binormals[i];
+  const position = curve.getPointAt(t);
+  const nextPosition = curve.getPointAt((i + 1) / segments);
 
-    const nextPosition = curve.getPointAt((i + 1) / segments);
-    const segmentLength = position.distanceTo(nextPosition);
+  const baseLength = position.distanceTo(nextPosition);
+  const overlapFactor = 2;
+  const segmentLength = baseLength * overlapFactor;
 
-    // Create geometry
-    const geometry = new THREE.BoxGeometry(segmentLength, trackHeight, roadWidth);
-    const material = new THREE.MeshStandardMaterial({ color: 0x888888 });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+  const normal = frames.normals[i];
+  const tangent = frames.tangents[i];
+  const binormal = frames.binormals[i];
 
-    // Set rotation using the Frenet frame
-    const basisMatrix = new THREE.Matrix4();
-    basisMatrix.makeBasis(tangent.clone().normalize(), normal.clone().normalize(), binormal.clone().normalize());
+  const geometry = new THREE.BoxGeometry(segmentLength, trackHeight, roadWidth);
+  const material = new THREE.MeshStandardMaterial({ 
+    color: 0x666666,
+    metalness: 0.9,
+    roughness: 0.5,
 
-    const transformMatrix = new THREE.Matrix4();
-    transformMatrix.setPosition(position);
-    transformMatrix.multiplyMatrices(transformMatrix, basisMatrix);
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
 
-    mesh.setRotationFromMatrix(transformMatrix);
-    mesh.position.copy(position);
-    mesh.matrixAutoUpdate = false;
-    mesh.updateMatrix();
+  const basisMatrix = new THREE.Matrix4();
+  basisMatrix.makeBasis(tangent.clone().normalize(), normal.clone().normalize(), binormal.clone().normalize());
 
-    scene.add(mesh);
+  const center = position.clone().lerp(nextPosition, 0.5);
 
-    // Physics body
-    const shape = new CANNON.Box(new CANNON.Vec3(segmentLength / 2, trackHeight / 2, roadWidth / 2));
-    const body = new CANNON.Body({ mass: 0 });
+  const transformMatrix = new THREE.Matrix4();
+  transformMatrix.setPosition(center);
+  transformMatrix.multiplyMatrices(transformMatrix, basisMatrix);
 
-    const quaternion = new CANNON.Quaternion();
-    const threeQuat = new THREE.Quaternion();
-    mesh.getWorldQuaternion(threeQuat);
-    quaternion.set(threeQuat.x, threeQuat.y, threeQuat.z, threeQuat.w);
+  mesh.setRotationFromMatrix(transformMatrix);
+  mesh.position.copy(center);
+  mesh.matrixAutoUpdate = false;
+  mesh.updateMatrix();
+  scene.add(mesh);
 
-    body.addShape(shape);
-    body.position.set(position.x, position.y, position.z);
-    body.quaternion.copy(quaternion);
+  const shape = new CANNON.Box(new CANNON.Vec3(segmentLength / 2, trackHeight / 2, roadWidth / 2));
+  const body = new CANNON.Body({ mass: 0 });
 
-    world.addBody(body);
-  }
+  const quaternion = new CANNON.Quaternion();
+  const threeQuat = new THREE.Quaternion();
+  mesh.getWorldQuaternion(threeQuat);
+  quaternion.set(threeQuat.x, threeQuat.y, threeQuat.z, threeQuat.w);
+
+  body.addShape(shape);
+  body.position.set(center.x, center.y, center.z);
+  body.quaternion.copy(quaternion);
+
+  world.addBody(body);
+}
+
 
   return { curve };
 }
-

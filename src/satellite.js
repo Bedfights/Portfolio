@@ -24,8 +24,8 @@ export async function createSatellite(camera, listener) {
                 audioLoader.load('/sounds/satellite.ogg', (buffer) => {
                     audio.setBuffer(buffer);
                     audio.setRefDistance(1);
-                    audio.setMaxDistance(300);
-                    audio.setRolloffFactor(0.5);
+                    audio.setMaxDistance(200);
+                    audio.setRolloffFactor(1);
                     audio.setDistanceModel('linear');
                     audio.setLoop(true);
                     audio.setVolume(settings.volume);

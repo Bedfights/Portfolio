@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+
 
 /*
 @param {CANNON.World} world - The Cannon physics world.
@@ -65,7 +68,7 @@ export function createSphere2(world, scene, {
 } = {}) {
     //physics body
     const shape = new CANNON.Sphere(radius);
-    const body = new CANNON.Body ({ mass});
+    const body = new CANNON.Body ({ mass });
     body.addShape(shape);
     body.position.set(position.x, position.y, position.z);
     world.addBody(body);
@@ -89,55 +92,124 @@ export function createSphere2(world, scene, {
     scene.add(mesh);
     return { body, mesh };
 }
-
-//Polyhedron
-export function createConvexPolyhedron(world, scene, {
-    vertices = [
-        new CANNON.Vec3(-1, -1, -1), //1
-        new CANNON.Vec3(1, -1, -1),  //2
-        new CANNON.Vec3(1, 1, -1),   //3
-        new CANNON.Vec3(-1, 1, -1),  //4
-        new CANNON.Vec3(-1, -1, 1),  //5
-        new CANNON.Vec3(1, -1, 1),   //6
-        new CANNON.Vec3(1, 1, 1),    //7
-        new CANNON.Vec3(-1, 1, 1)    //8
-    ],
-    indices = [
-        [0, 1, 2, 3], // front
-        [4, 5, 6, 7], // back]
-        [4, 7, 6, 5], 
-        [0, 4, 5, 1], 
-        [1, 5, 6, 2], 
-        [2, 6, 7, 3], 
-        [3, 7, 4, 0], 
-    ],
-    mass = 2,
-    position = { x: 0, y: 4, z: 0},
+export function createReflectiveSphere(world, scene, {
+    radius = 1,
+    mass = 5,
+    position = { x: 0, y: 5, z: -8 },
+    envMap,
 } = {}) {
-    //physics body
-    const shape = new CANNON.ConvexPolyhedron({ vertices, faces: indices });
+    // Physics body
+    const shape = new CANNON.Sphere(radius);
     const body = new CANNON.Body({ mass });
     body.addShape(shape);
     body.position.set(position.x, position.y, position.z);
-    world.addBody(body);
+    world.addBody(body); // (not `add`, should be `addBody`)
 
-    //visual mesh
-    // Build geometry from the face indices
-    const geometry = new THREE.BufferGeometry();
-    const positionArray = [];
-
-    for (const face of indices) {
-        for (const i of face) {
-            const v = vertices[i];
-            positionArray.push(v.x, v.y, v.z);
-        }
-    }
-
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positionArray, 3));
-    geometry.computeVertexNormals();
-
-    const material = new THREE.MeshStandardMaterial({ color: 0xffdddd });
+    // Visual mesh
+    const geometry = new THREE.SphereGeometry(radius, 32, 32);
+    const material = new THREE.MeshStandardMaterial({
+        metalness: 1,
+        roughness: 0,
+        envMap,
+        envMapIntensity: 1,
+    });
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     scene.add(mesh);
+
     return { body, mesh };
+}
+
+
+//Text
+export function createLetter(world, scene, options) {
+  const { letter, font, size = 1, mass = 1, position = { x: 0, y: 1, z: 0 }, color = 0xffffff } = options;
+
+  const textGeo = new TextGeometry(letter, {
+    font: font,
+    size: size,
+    height: 0.1,
+    curveSegments: 12,
+    bevelEnabled: false,
+  });
+  textGeo.computeBoundingBox();
+const centerOffset = new THREE.Vector3();
+textGeo.boundingBox.getCenter(centerOffset).negate();
+textGeo.translate(centerOffset.x, centerOffset.y, centerOffset.z);
+
+textGeo.scale(1.2, 1.2, 0.015);
+
+  const textMaterial = new THREE.MeshStandardMaterial({
+    color: color,
+    metalness: 0.7,
+    roughness: 0.3,
+    emissive: 0xaaaaaa
+  });
+
+  const mesh = new THREE.Mesh(textGeo, textMaterial);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.position.set(position.x, position.y, position.z);
+  scene.add(mesh);
+
+  const bbox = new THREE.Box3().setFromObject(mesh);
+  const sizeVec = new THREE.Vector3();
+  bbox.getSize(sizeVec);
+
+  const shape = new CANNON.Box(new CANNON.Vec3(sizeVec.x / 2, sizeVec.y / 2, sizeVec.z / 2));
+  const body = new CANNON.Body({
+    mass: mass,
+    shape: shape,
+    position: new CANNON.Vec3(position.x, position.y, position.z)
+  });
+
+  world.addBody(body);
+
+  return { mesh, body };
+}
+export function createSmallLetter(world, scene, options) {
+  const { letter, font, size = 1, mass = 1, position = { x: 0, y: 1, z: 0 }, color = 0xffffff } = options;
+
+  const textGeo = new TextGeometry(letter, {
+    font: font,
+    size: size,
+    height: 0.1,
+    curveSegments: 12,
+    bevelEnabled: false,
+  });
+  textGeo.computeBoundingBox();
+const centerOffset = new THREE.Vector3();
+textGeo.boundingBox.getCenter(centerOffset).negate();
+textGeo.translate(centerOffset.x, centerOffset.y, centerOffset.z);
+
+textGeo.scale(1.2, 1.2, 0.003);
+
+  const textMaterial = new THREE.MeshStandardMaterial({
+    color: color,
+    metalness: 0.7,
+    roughness: 0.3,
+    emissive: 0xaaaaaa
+  });
+
+  const mesh = new THREE.Mesh(textGeo, textMaterial);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.position.set(position.x, position.y, position.z);
+  scene.add(mesh);
+
+  const bbox = new THREE.Box3().setFromObject(mesh);
+  const sizeVec = new THREE.Vector3();
+  bbox.getSize(sizeVec);
+
+  const shape = new CANNON.Box(new CANNON.Vec3(sizeVec.x / 2, sizeVec.y / 2, sizeVec.z / 2));
+  const body = new CANNON.Body({
+    mass: mass,
+    shape: shape,
+    position: new CANNON.Vec3(position.x, position.y, position.z)
+  });
+
+  world.addBody(body);
+
+  return { mesh, body };
 }

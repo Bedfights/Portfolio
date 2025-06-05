@@ -6,7 +6,7 @@ import { settings } from './config.js';
 export function createCar(world, scene) {
   return new Promise((resolve, reject) => {
     // physics setup (same as before)
-    const chassisShape = new CANNON.Box(new CANNON.Vec3(1, 0.3, 2.2));
+    const chassisShape = new CANNON.Box(new CANNON.Vec3(1, 0.35, 2.2));
     const chassisBody = new CANNON.Body({ mass: 250 });
     chassisBody.addShape(chassisShape);
     chassisBody.position.set(0, 10, 0);
@@ -57,7 +57,7 @@ export function createCar(world, scene) {
       (gltf) => {
         const carMesh = gltf.scene;
         carMesh.scale.set(0.01, 0.01, 0.01);
-        carMesh.position.y -= 0.8;
+        carMesh.position.y -= 0.75;
         carMesh.castShadow = true;
         carMesh.receiveShadow = true;
         carGroup.add(carMesh);
@@ -68,11 +68,11 @@ export function createCar(world, scene) {
         const rightPointLight = new THREE.PointLight(0x00ddff, 4, 20);
         rightPointLight.position.set(0.8, -0.2, -2.5);
         
-        const leftSpotLight = new THREE.SpotLight(0xccddff, 400, 200, Math.PI / 7, 0.5, 1);
+        const leftSpotLight = new THREE.SpotLight(0xccddff, 100, 200, Math.PI / 7, 0.5, 1);
         leftSpotLight.position.set(-0.8, -0.2, -2.1);
         leftSpotLight.target.position.set(-0.8, 0, -40);
         
-        const rightSpotLight = new THREE.SpotLight(0xccddff, 400, 200, Math.PI / 7, 0.5, 1);
+        const rightSpotLight = new THREE.SpotLight(0xccddff, 100, 200, Math.PI / 7, 0.5, 1);
         rightSpotLight.position.set(0.8, -0.2, -2.1);
         rightSpotLight.target.position.set(0.8, 0, -40);
 

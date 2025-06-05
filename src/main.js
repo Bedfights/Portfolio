@@ -5,7 +5,9 @@ import { createCar } from './car.js';
 import { createCube } from './objects.js';
 import { createSphere } from './objects.js';
 import { createSphere2 } from './objects.js';
-import { createConvexPolyhedron } from './objects.js';
+import { createLetter} from './objects.js';
+import { createSmallLetter } from './objects.js';
+import { createReflectiveSphere } from './objects.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import CannonDebugger from 'cannon-es-debugger';
@@ -31,7 +33,7 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 camera.position.set(0, 5, 10);
-const cameraOffset = new THREE.Vector3(0, 2, 10);
+const cameraOffset = new THREE.Vector3(0, 3, 10);
 
 // Cube camera
 const cubeRendererTarget = new THREE.WebGLCubeRenderTarget(128, {
@@ -56,11 +58,176 @@ camera.add(listener);
 // Track
 const { curve, geometry } = createTrack(scene, world); // now we have the geometry
 
+// Clickable objects
+function createButton({ text, url, position }) {
+  const geometry = new THREE.BoxGeometry(3, 1, 0.2);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x001180
+  });
+  const button = new THREE.Mesh(geometry, material);
+  button.position.set(position.x, position.y, position.z);
+  button.rotation.y = THREE.MathUtils.degToRad(75);
+  button.userData.url = url;
+
+  const textLoader = new FontLoader();
+  textLoader.load('/fonts/RobotoCondensed.facetype.json', (font) => {
+    const textGeo = new TextGeometry(text, {
+      font: font,
+      size: 0.4,
+    });
+    textGeo.scale(1, 1, 0.002)
+    const textMat = new THREE.MeshStandardMaterial({ 
+      color: 0xffffff,
+      emissive: 0x00ff00
+    });
+    const textMesh = new THREE.Mesh(textGeo, textMat);
+    textGeo.computeBoundingBox();
+    const textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
+    textMesh.position.set(-textWidth / 2, -0.2, 0.15);
+    button.add(textMesh);
+  });
+  createRod(position, 3);
+
+  scene.add(button);
+  clickableObjects.push(button);
+}
+
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const clickableObjects = [];
+
+document.addEventListener('click', onMouseClick, false);
+
+function onMouseClick(event) {
+  // Normalize mouse coordinates to [-1, 1]
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  // Intersect with clickable objects only
+  const intersects = raycaster.intersectObjects(clickableObjects);
+
+  if (intersects.length > 0) {
+    const clickedObject = intersects[0].object;
+    const url = clickedObject.userData.url;
+    if (url) {
+      window.open(url, '_blank'); // or use `window.location.href = url;` to stay in tab
+    }
+  }
+}
+
+createButton({
+  text: "GitHub",
+  url: "https://github.com/Bedfights",
+  position: { x: -10, y: 3.5, z: 5 },
+});
+
+createButton({
+  text: "Instagram",
+  url: "https://www.instagram.com/albin_jornevald?igsh=aXJqanc2c3U3YTMz&utm_source=qr",
+  position: { x: -10, y: 3.5, z: 0 },
+});
+
+createButton({
+  text: "Mail",
+  url: "mailto:albin.jonevald@elev.boden.se",
+  position: { x: -10, y: 3.5, z: -5 },
+});
+
+function createRod(position, height = 3) {
+  // Create visual rod
+  const rodGeometry = new THREE.BoxGeometry(0.1, height, 0.1);
+  const rodMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0x064000
+  });
+  const rodMesh = new THREE.Mesh(rodGeometry, rodMaterial);
+  rodMesh.position.set(position.x, position.y - height / 2, position.z);
+  scene.add(rodMesh);
+
+  // Create physics body (static)
+  const halfExtents = new CANNON.Vec3(0.05, height / 2, 0.05);
+  const shape = new CANNON.Box(halfExtents);
+  const rodBody = new CANNON.Body({ mass: 0 });
+  rodBody.addShape(shape);
+  rodBody.position.set(rodMesh.position.x, rodMesh.position.y, rodMesh.position.z);
+  world.addBody(rodBody);
+}
+
+//Floor text
+function createFloorLabel({ text, position }) {
+  // Black square
+  const baseGeometry = new THREE.BoxGeometry(1.5, 2.5, 1.5);
+  const baseMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0x222222,
+    metalness: 0.8,
+    roughness: 0.2
+  });
+  const baseMesh = new THREE.Mesh(baseGeometry, baseMaterial);
+  baseMesh.position.set(position.x, position.y, position.z);
+  scene.add(baseMesh);
+
+  // Text
+  const fontLoader = new FontLoader();
+  fontLoader.load('/fonts/RobotoCondensed.facetype.json', (font) => {
+    const textGeo = new TextGeometry(text, {
+      font: font,
+      size: 0.5,
+      height: 0.05,
+    });
+    textGeo.scale(1, 1, 0.01);
+
+    const textMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0x00ff00,
+      emissiveIntensity: 0.6,
+    });
+
+    const textMesh = new THREE.Mesh(textGeo, textMat);
+    textGeo.computeBoundingBox();
+
+    const textWidth = textGeo.boundingBox.max.x - textGeo.boundingBox.min.x;
+    textMesh.position.set(
+      position.x - textWidth / 2,
+      position.y + 0.8,
+      position.z
+    );
+
+    textMesh.rotation.x = -Math.PI / 2; // Lay flat on floor
+    scene.add(textMesh);
+  });
+}
+createFloorLabel({
+  text: "W",
+  position: { x: 3, y: 0.05, z: 3 },
+});
+createFloorLabel({
+  text: "A",
+  position: { x: 1.35, y: 0.05, z: 4.65 },
+});
+createFloorLabel({
+  text: "S",
+  position: { x: 3, y: 0.05, z: 4.65 }
+});
+createFloorLabel({
+  text: "D",
+  position: { x: 4.65, y: 0.05, z: 4.65 }
+});
+createFloorLabel({
+  text: "ESC",
+  position: { x: 7, y: 0.05, z: -1}
+})
+createFloorLabel({
+  text: "R",
+  position: { x: 10, y: 0.05, z: 1}
+})
+
 // ************* \\
 // User controls \\
 // ************* \\
 document.addEventListener('keydown', (event) => {
-  const maxSteerVal = Math.PI / 6;
+  const maxSteerVal = Math.PI / 5;
   const maxForce = 700;
 
   switch (event.key) {
@@ -84,6 +251,8 @@ document.addEventListener('keydown', (event) => {
       vehicle.setSteeringValue(-maxSteerVal, 0);
       vehicle.setSteeringValue(-maxSteerVal, 1);
       break;
+    case 'r':
+      respawn();
   }
 });
 
@@ -117,7 +286,7 @@ const resumeBtn = document.getElementById('resumeButton');
 const mapBtn = document.getElementById('mapButton');
 const creditsBtn = document.getElementById('creditsButton');
 const settingsBtn = document.getElementById('settingsButton');
-const backBtn = document.getElementById('backButton');
+const backBtns = document.querySelectorAll('.backButton');
 const startScreen = document.getElementById('startScreen');
 const menu = document.getElementById('pauseMenu');
 const settingsMenu = document.getElementById('settingsMenu');
@@ -141,10 +310,13 @@ settingsBtn.addEventListener('click', () => {
   settingsMenu.style.display = 'flex';
   menu.style.display = 'none';
 });
-backBtn.addEventListener('click', () => {
+backBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
   creditsMenu.style.display = 'none';
   settingsMenu.style.display = 'none';
   menu.style.display = 'flex';
+  console.log('backbtn called');
+  });
 });
 
 
@@ -191,127 +363,130 @@ scene.add(hemiLight);
 // ******* \\
 
 // cubes
-/*
+
 const cube1 = createCube(world, scene, {
   size: 8,
-  mass: 1,
-  position: { x: -8, y: 5, z: -10 },
+  mass: 2,
+  position: { x: -4, y: 20, z: -100 },
 });
-*/
+
 
 // Spheres
 const sphere1 = createSphere(world, scene, {
   radius: 2,
   mass: 2,
-  position: { x: -4, y: 10, z: 0 },
+  position: { x: -4, y: 10, z: 100 },
 });
 const sphere2 = createSphere2(world, scene, {
-  radius: 1,
-  mass: 1,
-  position: { x: -1, y: 6, z: -14 },
+  radius: 2,
+  mass: 30,
+  position: { x: 0, y: 6, z: -90 },
   color: 0xff0000,
 });
 
-// Text
-const loaderText1 = new FontLoader(); 
-loaderText1.load('/fonts/RobotoCondensed.facetype.json', (font) => {
-  const textGeometryLarge = new TextGeometry('Albin', {
-  font: font,
-  size: 1,
-  curveSegments: 12,
-  bevelEnabled: false,
-});
-const textGeometry = textGeometryLarge.scale(1, 1, 0.01);
-
-
-  const textMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0xffffff, 
-    emissive: 0xffffff,
-    emissiveIntensity: 0.01,
-    metalness: 0.9,
-    roughness: 0.05,
-  });
-  const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-  textMesh.position.set(4, 5, -4);
-  textMesh.rotation.set(0, 0, 0);
-  scene.add(textMesh);
-});
-
-// Polyhedrons
-/*
-const polyh1 = createConvexPolyhedron(world, scene, {
-vertices: [
-        new CANNON.Vec3(-1, -1, -1), // 0
-        new CANNON.Vec3(1, -1, -1),  // 1
-        new CANNON.Vec3(1, 1, -1),   // 2
-        new CANNON.Vec3(-1, 1, -1),  // 3
-        new CANNON.Vec3(-1, -1, 1),  // 4
-        new CANNON.Vec3(1, -1, 1),   // 5 
-        new CANNON.Vec3(1, 1, 1),    // 6
-        new CANNON.Vec3(-1, 1, 1)    // 7
-    ],
-    indices: [
-        [0, 1, 2, 3], 
-        [4, 5, 6, 7], 
-        [0, 1, 5, 4], 
-        [1, 2, 6, 5], 
-        [2, 3, 7, 6], 
-        [3, 0, 4, 7], 
-    ],
-  mass: 4,
-  position: { x: 4, y: 6, z: -2 },
-  emissive: 0xffdddd,
-  emissiveIntensity: 0.1,
-  metalness: 0.9,
-  roughness: 0.1,
-});
-*/
-/*
-const polyh2 = createConvexPolyhedron(world, scene, {
-  vertices: [
-    new CANNON.Vec3(0, 1, 0),
-    new CANNON.Vec3(0, -1, -1),
-    new CANNON.Vec3(1, -1, 1),
-    new CANNON.Vec3(-1, -1, 1)
-  ],
-  indices: [
-    [2, 1, 0],
-    [3, 2, 0],
-    [1, 3, 0],
-    [1, 2, 3]
-  ],
-  mass: 1,
-  position: { x: 6, y: 6, z: 0 }
-});
-*/
-
-
-
-
-
-//const cubes = [cube1];
-const spheres = [ sphere1, sphere2];
-const polyhedrons = [];
-
-
-const reflectiveMaterial = new THREE.MeshStandardMaterial({
-  metalness: 1,
-  roughness: 0,
+const reflectiveSphere = createReflectiveSphere(world, scene, {
+  radius: 0.7,
+  mass: 2,
+  position: { x: 0, y: 5, z: -10 },
   envMap: cubeRendererTarget.texture,
-  envMapIntensity: 1,
 });
 
-const reflectiveSphere = new THREE.Mesh(
-  new THREE.SphereGeometry(2, 32, 32),
-  reflectiveMaterial
-);
-reflectiveSphere.position.set(3, 3, -8);
-scene.add(reflectiveSphere);
 
-// ******************** \\
-// Initialize Satellite \\
-// ******************** \\
 
+// Text
+const loaderText = new FontLoader();
+loaderText.load('/fonts/RobotoCondensed.facetype.json', (font) => {
+  const name = "ALBIN JORNEVALD";
+  const letters = [];
+  const startX1 = -8.5;
+  const spacing1 = 1.2;
+
+  for (let i = 0; i < name.length; i++) {
+    const letterChar = name[i];
+    const posX = startX1 + i * spacing1;
+    const letter = createLetter(world, scene, {
+      letter: letterChar,
+      font: font,
+      size: 1,
+      mass: 1,
+      position: { x: posX, y: 1.85, z: -25 },
+      color: 0xffffff,
+    });
+    letters.push(letter);
+  }
+
+  const toMove = "Move:";
+  const startX2 = -1.7;
+  const spacing2 = 0.5;
+  for (let i = 0; i < toMove.length; i++) {
+    const letterChar = toMove[i];
+    const posX = startX2 + i * spacing2;
+    const letter = createSmallLetter(world, scene, {
+      letter: letterChar,
+      font: font, 
+      size: 0.5,
+      mass: 0.5,
+      position: { x: posX, y: 1.8, z: 4.6},
+      color: 0xffffff,
+    });
+    letters.push(letter);
+  }
+
+  const toMenu = "Menu:";
+  const startX3 = 4;
+  const spacing3 = 0.5;
+  for (let i = 0; i < toMenu.length; i++) {
+    const letterChar = toMenu[i];
+    const posX = startX3 + i * spacing3;
+    const letter = createSmallLetter(world, scene, {
+      letter: letterChar,
+      font: font,
+      size: 0.5,
+      mass: 0.5,
+      position: { x: posX, y: 1.8, z: -1},
+      color: 0xffffff,
+    });
+    letters.push(letter);
+  }
+
+  const toRespawn = "Respawn:";
+  const startX4 = 5.5;
+  const spacing4 = 0.5;
+  for (let i = 0; i < toRespawn.length; i++) {
+    const letterChar = toRespawn[i];
+    const posX = startX4 + i * spacing4;
+    const letter = createSmallLetter(world, scene, {
+      letter: letterChar,
+      font: font, 
+      size: 0.5,
+      mass: 0.5,
+      position: { x: posX, y: 1.8, z: 1 },
+      color: 0xffffff,
+    });
+    letters.push(letter);
+  }
+  
+
+  // Update letter meshes each frame based on physics
+  function updateLetters() {
+    letters.forEach(({ mesh, body }) => {
+      mesh.position.copy(body.position);
+      mesh.quaternion.copy(body.quaternion);
+    });
+  }
+
+  // Hook into your animation loop:
+  const oldAnimate = animate;
+  animate = function(vehicle, chassisBody, carGroup, carMesh) {
+    oldAnimate(vehicle, chassisBody, carGroup, carMesh);
+    updateLetters(); // Keep letters in sync with physics
+  };
+});
+
+
+
+const cubes = [cube1];
+const spheres = [ sphere1, sphere2, reflectiveSphere ];
 
 
 // ************************** \\
@@ -356,6 +531,16 @@ async function init() {
   }
 }
 
+function respawn() {
+  const respawnPosition = new CANNON.Vec3(0, 10, 0); // Change this to your desired respawn point
+  const respawnRotation = new CANNON.Quaternion(0, 0, 0, 1);
+
+  chassisBody.velocity.setZero();
+  chassisBody.angularVelocity.setZero();
+  chassisBody.position.copy(respawnPosition);
+  chassisBody.quaternion.copy(respawnRotation);
+}
+
 // ************** \\
 // Animation loop \\
 // ************** \\
@@ -369,7 +554,7 @@ function animate(vehicle, chassisBody, carGroup, carMesh) {
   if (!isPaused) {
     console.log('Animating...');
     world.step(fixedTimeStep, undefined, maxSubSteps);
-    cannonDebugger.update();
+    //cannonDebugger.update();
 
     carGroup.position.copy(chassisBody.position);
     carGroup.quaternion.copy(chassisBody.quaternion);
@@ -392,24 +577,18 @@ function animate(vehicle, chassisBody, carGroup, carMesh) {
     const cameraPos = carPos.clone().add(rotatedOffset);
     camera.position.lerp(cameraPos, 0.1);
 
-  /*
+  
     cubes.forEach(({ body, mesh }) => {
       mesh.position.copy(body.position);
       mesh.quaternion.copy(body.quaternion);
     });
-  */
-
+  
     spheres.forEach(({ body, mesh }) => {
       mesh.position.copy(body.position);
       mesh.quaternion.copy(body.quaternion);
     });
 
-    polyhedrons.forEach(({ body, mesh }) => {
-      mesh.position.copy(body.position);
-      mesh.quaternion.copy(body.quaternion);
-    });
-
-    cubeCamera.position.copy(reflectiveSphere.position);
+    cubeCamera.position.copy(reflectiveSphere.mesh.position);
     cubeCamera.update(renderer, scene);
   } else if (isPaused) {
     console.log('Paused');
