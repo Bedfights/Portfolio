@@ -49,6 +49,8 @@ export function createCar(world, scene) {
     vehicle.addToWorld(world);
 
     const carGroup = new THREE.Group();
+    const listener = new THREE.AudioListener();
+    carGroup.add(listener);
     scene.add(carGroup);
 
     const loader = new GLTFLoader();
@@ -126,6 +128,7 @@ export function createCar(world, scene) {
           chassisBody, 
           carGroup, 
           carMesh, 
+          listener,
           leftPointLight, 
           rightPointLight, 
           leftSpotLight, 

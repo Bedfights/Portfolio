@@ -31,7 +31,7 @@ export function createStreetLight(scene, world, position = { x: 0, y: 0, z: 0 },
   light.castShadow = false;
 
   // Bulb
-  const bulbGeometry = new THREE.SphereGeometry(0.1, 5, 5);
+  const bulbGeometry = new THREE.SphereGeometry(0.2, 5, 5);
   const bulbMaterial = new THREE.MeshStandardMaterial({
     emissive: 0xffffcc,
     color: 0x222200,

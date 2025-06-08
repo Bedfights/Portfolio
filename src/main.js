@@ -1,20 +1,20 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { createTrack } from './track.js';
 import { createCar } from './car.js';
+import { createTrack } from './track.js';
+import { createSatellite, satelliteSound } from './satellite.js';
+import { createStreetLight } from './streetlight.js';
 import { createCube } from './objects.js';
+import { createLetter} from './objects.js';
 import { createSphere } from './objects.js';
 import { createSphere2 } from './objects.js';
-import { createLetter} from './objects.js';
+import { createDisplay } from './objects.js';
 import { createSmallLetter } from './objects.js';
 import { createReflectiveSphere } from './objects.js';
-import { createDisplay } from './objects.js';
-import { createStreetLight } from './streetlight.js';
+import { settings } from './config.js';
+import CannonDebugger from 'cannon-es-debugger';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import CannonDebugger from 'cannon-es-debugger';
-import { settings } from './config.js';
-import { createSatellite } from './satellite.js';
 
 // Create physics world
 const world = new CANNON.World({
@@ -352,31 +352,42 @@ const startScreen = document.getElementById('startScreen');
 const menu = document.getElementById('pauseMenu');
 const settingsMenu = document.getElementById('settingsMenu');
 const creditsMenu = document.getElementById('creditsMenu');
+const buttonSound = document.getElementById('buttonSound');
 
 isPaused = true;
 startBtn.addEventListener('click', () => {
   startScreen.style.display = 'none';
   isPaused = false;
   initSatellite();
+  buttonSound.currentTime = 0;
+  buttonSound.play();
+  satelliteSound.play();
 })
 resumeBtn.addEventListener('click', () => {
   isPaused = false;
   menu.style.display = 'none';
+  buttonSound.currentTime = 0;
+  buttonSound.play();
 });
 creditsBtn.addEventListener('click', () => {
   creditsMenu.style.display = 'flex';
   menu.style.display = 'none';
+  buttonSound.currentTime = 0;
+  buttonSound.play();
 })
 settingsBtn.addEventListener('click', () => {
   settingsMenu.style.display = 'flex';
   menu.style.display = 'none';
+  buttonSound.currentTime = 0;
+  buttonSound.play();
 });
 backBtns.forEach(btn => {
   btn.addEventListener('click', () => {
   creditsMenu.style.display = 'none';
   settingsMenu.style.display = 'none';
   menu.style.display = 'flex';
-  console.log('backbtn called');
+  buttonSound.currentTime = 0;
+  buttonSound.play();
   });
 });
 
@@ -597,12 +608,12 @@ createDisplay(scene, world, clickableObjects, {
 // Initialize car & satellite \\
 // ************************** \\
 let satelliteMesh;
-let vehicle, chassisBody, carGroup, carMesh;
+let vehicle, chassisBody, carGroup, carMesh, audioListener;
 
 init();
 async function initSatellite() {
   try {
-    satelliteMesh = await createSatellite(camera);
+    satelliteMesh = await createSatellite(audioListener);
     scene.add(satelliteMesh);
   } catch (error) {
     console.error("Failed to load satellite", error);
@@ -617,6 +628,7 @@ async function init() {
     chassisBody = car.chassisBody;
     carGroup = car.carGroup;
     carMesh = car.carMesh;
+    audioListener = car.listener;
 
     carLights = [
       car.leftPointLight,
@@ -628,7 +640,9 @@ async function init() {
       car.lBWheelLight,
       car.rBWheelLight
     ];
-    // Now start animation loop with car fully loaded:
+
+    await initSatellite();
+    
     animate(vehicle, chassisBody, carGroup, carMesh);
   } catch (error) {
     console.error('Failed to load car:', error);
